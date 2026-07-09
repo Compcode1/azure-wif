@@ -1,6 +1,6 @@
-================================================================================
+
 SECTION 1: PROJECT INTRODUCTION & STRATEGIC ARCHITECTURAL OUTLINE
-================================================================================
+
 
 1.1 OBJECTIVE AND SCOPE
 The core objective of Project Zero-Trust Azure Automation Mesh is to design, deploy, and validate a secure, machine-to-machine data plane path within Microsoft Azure that completely bypasses legacy Software as a Service (SaaS) application dependencies like SharePoint Online. This project implements Workload Identity Federation (WIF) utilizing OpenID Connect (OIDC) to establish a passwordless, cryptographic trust relationship between a GitHub Actions execution runner hosting an automated Artificial Intelligence (AI) data-ingestion bot and an Azure Storage Account container resource.
@@ -18,9 +18,8 @@ To ensure absolute technical precision across this project, the following resour
 - Federated Identity Credential (FIC): The cryptographic trust mapping inside Microsoft Entra ID that tells the identity platform to accept tokens minted by the external GitHub OIDC provider.
 - Access Token (AT): The short-lived JSON Web Token (JWT) issued by Microsoft Entra ID containing the temporary RBAC claims required to authorize the write operation.
 
-================================================================================
+
 SECTION 2: CORE IMPLEMENTATION GUIDELINE AND MILESTONE PATH
-================================================================================
 
 2.1 REPETITIVE PROCESS ROUTING LOGIC
 The lab will be executed incrementally by going back and forth across a sequence of four highly distinct milestones. Each milestone must be fully completed and checked before any downstream configuration steps are introduced:
@@ -42,9 +41,9 @@ MILESTONE 04: AUTOMATED WORKFLOW LIFECYCLE AND PAYLOAD EXECUTION
 - Step 1: Construct a secure GitHub Actions YAML configuration file within your project repository, explicitly requesting "id-token: write" permissions.
 - Step 2: Execute the automated workflow pipeline, forcing the GitHub runner to dynamically mint an OIDC token, present it to Microsoft Entra ID, fetch a temporary Access Token (AT), and use that token to cleanly write a text payload directly into the Azure storage account.
 
-================================================================================
+
 SECTION 10: SYSTEM VALIDATOR: CONSTRAINTS & EDGE CASES
-================================================================================
+
 
 10.1 ACCESS DENIED TRIGGERS & HARD BOOLEANS
 - Case-Sensitivity Enforcement [Hard Boolean: Failure]: The Microsoft Entra validation engine checks the Federated Identity Credential (FIC) subject claim string using absolute case-sensitivity matching. If the GitHub repository path or branch name is evaluated as "Repo-Name" in the GitHub token but is typed as "repo-name" in the Azure trust mapping, the authentication sub-system immediately flags a token mismatch and rejects the exchange with an explicit Access Denied trigger.
@@ -54,9 +53,8 @@ SECTION 10: SYSTEM VALIDATOR: CONSTRAINTS & EDGE CASES
 - Failure State Constraint: If an unauthenticated or unauthorized actor attempts to trigger the GitHub Actions workflow pipeline from an unmapped or unapproved branch (e.g., "dev-feature-patch"), the subject claim check fails, the Access Token (AT) state remains completely unissued (Null), and the connection to the Storage Account is blocked with an HTTP 403 unauthorized response.
 - Success State Inverse: Conversely, when a workflow is triggered strictly from the configured main branch matching the Federated Identity Credential (FIC) ruleset, the subject claim passes validation, the Access Token (AT) transitions immediately to an Active state, and the runtime environment is granted functional write capabilities to the target blob layer.
 
-================================================================================
+
 SECTION 11: CLINICAL CASE STUDIES
-================================================================================
 
 11.1 CASE STUDY EVALUATION LOG 01: OIDC CLAIM MISMATCH FAULT
 - Configuration State: The App Registration contains a Federated Identity Credential (FIC) mapped to subject claim "repo:CompCode1/automation-mesh:ref:refs/heads/main". The active deployment agent is a headless cloud virtual machine runner executing a production GitHub workflow.
