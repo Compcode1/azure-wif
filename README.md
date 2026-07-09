@@ -42,3 +42,30 @@ MILESTONE 04: AUTOMATED WORKFLOW LIFECYCLE AND PAYLOAD EXECUTION
 - Step 2: Execute the automated workflow pipeline, forcing the GitHub runner to dynamically mint an OIDC token, present it to Microsoft Entra ID, fetch a temporary Access Token (AT), and use that token to cleanly write a text payload directly into the Azure storage account.
 
 
+# Finalized Project Summary: Project Zero-Trust Azure Automation Mesh
+
+## MILESTONE 01: COMPONENT PROVISIONING & TARGET RESOURCE ISOLATION
+*   **Step 1 (Resource Group):** An Azure Resource Group was created to serve as the explicit, isolated management boundary block for the entire lab environment.
+*   **Step 2 (Storage Account):** The target Azure Storage Account named `stmeshbotlogssgt` was instantiated with public blob access explicitly disabled to enforce maximum cloud-native network perimeter security.
+*   **Step 3 (Container):** A private blob storage container instance named `vault-logs` was built within the storage account to serve as the destination for the automated data logs.
+
+## MILESTONE 02: APPLICATION REGISTRATION AND TRUST FEDERATION
+*   **Step 1 (Identity Provisioning):** An application registration named `app-automation-bot` was provisioned inside the Microsoft Entra admin center to represent the automated agent in the cloud identity plane.
+*   **Step 2 (Federated Identity Credential):** A Federated Identity Credential (FIC) named `fic-github-automation-main` was configured on the application registration. To clear case-sensitive literal matching and pass authentication, the parameters were aligned with the raw claims emitted by the GitHub token engine:
+    *   **Issuer:** `https://token.actions.githubusercontent.com`
+    *   **Organization (Subject Case):** `Compcode1`
+    *   **Repository (Subject Case):** `isolated-ai-agent-wif`
+    *   **Entity Type / Branch Name:** `Branch` / `main`
+
+## MILESTONE 03: CLOUD-NATIVE ROLE-BASED ACCESS CONTROL (RBAC) BINDING
+*   **Step 1 (Role Assignment):** The Azure RBAC role of **Storage Blob Data Contributor** was bound directly to the `app-automation-bot` Service Principal object, bypassing the need for legacy access keys.
+*   **Step 2 (Scope Limitation):** This data-plane role assignment was strictly scoped to the single `vault-logs` storage container instance, ensuring the identity cannot leak lateral read or write privileges to any other resource within the subscription.
+
+## MILESTONE 04: AUTOMATED WORKFLOW LIFECYCLE AND PAYLOAD EXECUTION
+*   **Step 1 (Variables Configuration):** Four exact environment mapping parameters were configured within GitHub Actions Repository Variables to ensure accurate token routing and directory lookup:
+    *   `AZURE_CLIENT_ID` (App Registration GUID)
+    *   `AZURE_TENANT_ID` (Directory Tenant GUID)
+    *   `AZURE_SUBSCRIPTION_ID` (Subscription GUID for tenant routing)
+    *   `AZURE_STORAGE_ACCOUNT` (`stmeshbotlogssgt`)
+*   **Step 2 (OIDC Token Handshake):** The pipeline file (`deploy-mesh.yml`) explicitly requested `id-token: write` permissions. When triggered by a push to `main`, the headless GitHub Actions Runner dynamically minted a short-lived OIDC token and presented it to Microsoft Entra ID.
+*   **Step 3 (Payload Execution):** Microsoft Entra ID verified the token claims against the Federated Identity Credential, validated the subscription path, and returned a temporary Access Token (AT). The runner used this token with the Azure CLI in `--auth-mode login` to inherit RBAC permissions and successfully upload the payload file `connection-test.txt` containing the string `"Automated validation payload text."` directly into the `vault-logs` container.
