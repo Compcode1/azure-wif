@@ -42,28 +42,3 @@ MILESTONE 04: AUTOMATED WORKFLOW LIFECYCLE AND PAYLOAD EXECUTION
 - Step 2: Execute the automated workflow pipeline, forcing the GitHub runner to dynamically mint an OIDC token, present it to Microsoft Entra ID, fetch a temporary Access Token (AT), and use that token to cleanly write a text payload directly into the Azure storage account.
 
 
-SECTION 10: SYSTEM VALIDATOR: CONSTRAINTS & EDGE CASES
-
-
-10.1 ACCESS DENIED TRIGGERS & HARD BOOLEANS
-- Case-Sensitivity Enforcement [Hard Boolean: Failure]: The Microsoft Entra validation engine checks the Federated Identity Credential (FIC) subject claim string using absolute case-sensitivity matching. If the GitHub repository path or branch name is evaluated as "Repo-Name" in the GitHub token but is typed as "repo-name" in the Azure trust mapping, the authentication sub-system immediately flags a token mismatch and rejects the exchange with an explicit Access Denied trigger.
-- Access Token (AT) Expiration Lifecycles [Hard Boolean: Interrupted]: Because Workload Identity Federation uses short-lived tokens minted on the fly by an external issuer, no Refresh Token (RT) is generated or preserved for the machine account. If a bulk automation process or file stream exceeds the lifetime of the dynamically generated Access Token (AT), the connection drops instantly into a failure state, requiring an entirely new cryptographic OIDC handshake to rebuild the session.
-
-10.2 THE INVERSE LOGIC SYMMETRY RULE
-- Failure State Constraint: If an unauthenticated or unauthorized actor attempts to trigger the GitHub Actions workflow pipeline from an unmapped or unapproved branch (e.g., "dev-feature-patch"), the subject claim check fails, the Access Token (AT) state remains completely unissued (Null), and the connection to the Storage Account is blocked with an HTTP 403 unauthorized response.
-- Success State Inverse: Conversely, when a workflow is triggered strictly from the configured main branch matching the Federated Identity Credential (FIC) ruleset, the subject claim passes validation, the Access Token (AT) transitions immediately to an Active state, and the runtime environment is granted functional write capabilities to the target blob layer.
-
-
-SECTION 11: CLINICAL CASE STUDIES
-
-11.1 CASE STUDY EVALUATION LOG 01: OIDC CLAIM MISMATCH FAULT
-- Configuration State: The App Registration contains a Federated Identity Credential (FIC) mapped to subject claim "repo:CompCode1/automation-mesh:ref:refs/heads/main". The active deployment agent is a headless cloud virtual machine runner executing a production GitHub workflow.
-- Action: The automated runner triggers a codebase evaluation event from a pull request branch named "refs/heads/dev-testing".
-- Outcome: Hard Boolean [Failure]
-- Technical Logic: The GitHub OIDC token provider minted a JSON Web Token containing a subject claim matching the active branch string. When presented to Microsoft Entra ID, the authentication compiler cross-referenced the incoming string against the hardcoded Federated Identity Credential rule. Because "refs/heads/dev-testing" does not structurally or case-sensitively match "refs/heads/main", the token exchange was terminated at the gateway. The Access Token (AT) state remained unissued, resulting in an immediate authentication rejection.
-
-11.2 CASE STUDY EVALUATION LOG 02: SECURE LEAST-PRIVILEGE PIPELINE VERIFICATION
-- Configuration State: The App Registration holds a valid Federated Identity Credential (FIC) trust and an active role assignment for "Storage Blob Data Contributor" scoped strictly to the storage container "vault-logs".
-- Action: The automation runner executes a deployment script that attempts to simultaneously write a log payload to container "vault-logs" and read secret assets from an unmapped Azure Key Vault resource within the same subscription.
-- Outcome: Hard Boolean [Success] for Storage Write / [Failure] for Key Vault Read
-- Technical Logic: The Access Token (AT) carried specific role claims authorizing data actions exclusively within the scope of the targeted storage container path. When the runner presented the token to the storage container, the database parser evaluated the identity claim, matched the RBAC matrix, and allowed the write to execute cleanly. However, when the exact same token was presented to the Key Vault engine, the authorization layer detected a total absence of a "Key Vault Secrets User" claim role, triggering an immediate access restriction event while preserving the integrity of the storage boundary.
