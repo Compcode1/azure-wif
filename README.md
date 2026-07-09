@@ -19,7 +19,7 @@ To ensure absolute technical monosemy across this project, the following resourc
 
 
 SECTION 2: CORE IMPLEMENTATION GUIDELINE AND MILESTONE PATH
-================================================================================
+
 
 2.1 REPETITIVE PROCESS ROUTING LOGIC
 The lab will be executed incrementally by going back and forth across a sequence of four highly distinct milestones. Each milestone must be fully completed and checked before any downstream configuration steps are introduced:
