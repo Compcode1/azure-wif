@@ -17,7 +17,7 @@ To ensure absolute technical monosemy across this project, the following resourc
 - Access Token (AT): The short-lived JSON Web Token (JWT) issued by the Microsoft identity platform to the Subject (Source) upon validation of the federated credential, bearing the specific Azure RBAC claims required to write to the Target (Resource).
 - Federated Identity Credential (FIC): The specific cryptographic trust object mapped inside Microsoft Entra ID that forces the tenant to accept tokens minted by the external OpenID Connect (OIDC) provider (GitHub) matching a precise repository, branch, or environment subject claim string.
 
-================================================================================
+
 SECTION 2: CORE IMPLEMENTATION GUIDELINE AND MILESTONE PATH
 ================================================================================
 
@@ -41,7 +41,7 @@ MILESTONE 04: AUTOMATED WORKFLOW LIFECYCLE AND PAYLOAD EXECUTION
 - Step 1: Construct a secure GitHub Actions YAML configuration file within your project repository, explicitly requesting "id-token: write" permissions.
 - Step 2: Execute the automated workflow pipeline, forcing the GitHub runner to dynamically mint an OIDC token, present it to Microsoft Entra ID, fetch a temporary Access Token (AT), and use that token to cleanly write a text payload directly into the Target (Resource) storage account.
 
-================================================================================
+
 SECTION 10: SYSTEM VALIDATOR: CONSTRAINTS & EDGE CASES
 ================================================================================
 
@@ -53,7 +53,7 @@ SECTION 10: SYSTEM VALIDATOR: CONSTRAINTS & EDGE CASES
 - Failure State Constraint: If an unauthenticated or unauthorized actor attempts to trigger the GitHub Actions workflow pipeline from an unmapped or unapproved branch (e.g., "dev-feature-patch"), the subject claim check fails, the Access Token (AT) state remains completely unissued (Null), and the connection to the Target (Resource) is blocked with an HTTP 403 unauthorized response.
 - Success State Inverse: Conversely, when a workflow is triggered strictly from the configured main branch matching the Federated Identity Credential (FIC) ruleset, the subject claim passes validation, the Access Token (AT) transitions immediately to an Active state, and the runtime environment is granted functional write capabilities to the target blob layer.
 
-================================================================================
+
 SECTION 11: CLINICAL CASE STUDIES
 ================================================================================
 
